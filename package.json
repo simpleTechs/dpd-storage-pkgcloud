@@ -1,0 +1,16 @@
+{
+  "name": "dpd-storage-pkgcloud",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Fabian Off, simpleTechs.net <fabian@simpletechs.net>",
+  "license": "FreeBSD",
+  "dependencies": {
+    "busboy": "^0.2.9",
+    "debug": "^2.1.1",
+    "pkgcloud": "^1.2.0-alpha.0"
+  }
+}
