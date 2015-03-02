@@ -11,10 +11,11 @@ Others can be implemented easily if pkgcloud supports them (i.e. Google Cloud St
 
 * **GET** `/file` - be redirected to the file at the storage provider (can be used in `<img src="/files/image.jpg">)
 * **GET** `/file?returnFormat=url` - retrive a signed URL to GET the file
-* **GET** `/file?action=put` - retrive a signed URL to PUT the file (i.e. from the client directly to the storage provider)
+* **GET** `/file?_method=PUT&returnFormat=url` - retrive a signed URL to PUT the file (i.e. from the client directly to the storage provider)
 * **DELETE** `/file` - delete a file
 * **PUT/POST** `/file` (Body = File Content) - upload a file by streaming it from the request to the storage provider
 * **PUT/POST** `/file` (Body = Multipart Form) - upload multiple files by streaming them from the request to the storage provider (may include additional information, such as mimetype and multiple filenames)
+* **PUT/POST** `/file?returnFormat=url` - retrive a signed URL to PUT the file (i.e. from the client directly to the storage provider)
 
 ### Requirements
 
@@ -44,10 +45,10 @@ See [Installing Modules](http://docs.deployd.com/docs/using-modules/installing-m
 
 The following list shows all events that are supported:
 
-* **put** - will run once for every file that is about to be uploaded to the storage provider, may be used to `cancel` that request
-* **afterput** - will run once for every file that was successfully uploaded to the storage provider, **cannot** be cancelled
-* **get** - will run on each `get` request to a file, may be used to `cancel` that request
-* **delete** - will run on each `delete` request to a file, may be used to `cancel` that request
+* **BeforePut** - will run once for every file that is about to be uploaded to the storage provider, may be used to `cancel` that request
+* **AfterPut** - will run once for every file that was successfully uploaded to the storage provider, **cannot** be cancelled
+* **BeforeGet** - will run on each `get` request to a file, may be used to `cancel` that request
+* **BeforeDelete** - will run on each `delete` request to a file, may be used to `cancel` that request
 
 Each event will run inside the following domain, i.e. the following variables can be accessed inside the script (all read-only):
 
