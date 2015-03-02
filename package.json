@@ -1,12 +1,25 @@
 {
   "name": "dpd-storage-pkgcloud",
-  "version": "0.0.1",
-  "description": "",
+  "version": "0.1.1",
+  "description": "This custom resource type allows you to provide multiple ways of storing files in the cloud through delpoyd.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Fabian Off, simpleTechs.net <fabian@simpletechs.net>",
+  "repository": {
+    "type": "git",
+    "url": "git@bitbucket.org:simpletechs/dpd-storage-pkgcloud.git"
+  },
+  "keywords": [
+    "deployd",
+    "dpd",
+    "storage",
+    "s3"
+  ],
+  "author": {
+    "name": "Fabian Off, simpleTechs.net",
+    "email": "fabian@simpletechs.net"
+  },
   "license": "FreeBSD",
   "dependencies": {
     "busboy": "^0.2.9",
