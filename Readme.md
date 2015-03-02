@@ -9,7 +9,7 @@ Others can be implemented easily if pkgcloud supports them (i.e. Google Cloud St
 
 `dpd-storage-pkgcloud` supports the following types of requests:
 
-* **GET** `/file` - be redirected to the file at the storage provider (can be used in `<img src="/files/image.jpg">)
+* **GET** `/file` - be redirected to the file at the storage provider (can be used in `<img src="/files/image.jpg">`)
 * **GET** `/file?returnFormat=url` - retrive a signed URL to GET the file
 * **GET** `/file?_method=PUT&returnFormat=url` - retrive a signed URL to PUT the file (i.e. from the client directly to the storage provider)
 * **DELETE** `/file` - delete a file
@@ -30,17 +30,18 @@ See [Installing Modules](http://docs.deployd.com/docs/using-modules/installing-m
 
 ### Setup
 
-[TBD]
+* enter your credentials in the event's config
+* make sure to implement **secure** `beforePut`, `beforeGet` and `beforeDelete` handlers. Use `cancelUnless(me, 'You are not authorized to do this', 403);` as a basic template.
+* if you'd like, you can set `this.filepath` in the `beforePut` event - this will change the destination which a file is uploaded to
 
 ### Usage
 
-[TBD]
-
-### Usage in Mobile Apps
-
-[TBD]
+For best performance, always try to *directly* upload data from your client to the storage backend. Use `?returnFormat=url` in your `PUT` request to receive an `uploadURL` in the response.
+You can then `PUT` your file directly to this url and your deployd-server will never have to handle the file itself.
+The signed URL does not include any secret information.
 
 ### API
+
 `dpd-storage-pkgcloud` supports multiple events, i.e. scripts that run once certain actions are done (or about to happen). 
 
 The following list shows all events that are supported:
@@ -62,4 +63,4 @@ You can use this to keep track of every file uploaded (e.g. in a dedicated colle
 
 We'd like to thank pkgcloud for building this great abstraction layer!
 
-Storage-pkgcloud is the work of [simpleTechs.net](https://www.simpletechs.net)
+`storage-pkgcloud` is the work of [simpleTechs.net](https://www.simpletechs.net)
