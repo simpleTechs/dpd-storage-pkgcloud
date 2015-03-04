@@ -159,7 +159,7 @@ module.exports.prototype.handle = function(ctx, next) {
             });
             busboy.on('finish', function() {
                 when.all(uploads).then(function(results) {
-                    debug('All uploads done, errors: %j', error);
+                    debug('All uploads done');
                     ctx.done(null, {
                         success: true,
                         filepaths: results.map(function(res) {
