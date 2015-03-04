@@ -1,6 +1,6 @@
 {
   "name": "dpd-storage-pkgcloud",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "This custom resource type allows you to provide multiple ways of storing files in the cloud through delpoyd.",
   "main": "index.js",
   "scripts": {
