@@ -24,6 +24,7 @@
   "dependencies": {
     "busboy": "^0.2.9",
     "debug": "^2.1.1",
-    "pkgcloud": "^1.2.0-alpha.0"
+    "pkgcloud": "^1.2.0-alpha.0",
+    "when": "^3.7.2"
   }
 }

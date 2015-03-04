@@ -1,5 +1,6 @@
 var debug = require('debug')('dpd-storage-pkgcloud'),
     Resource = require('deployd/lib/resource'),
+    when = require('when'),
     util = require('util'),
     path = require('path'),
     pkgcloud = require('pkgcloud'),
@@ -128,40 +129,48 @@ module.exports.prototype.handle = function(ctx, next) {
             debug('got form-post request, type: %s', requestType);
             
             var busboy = new Busboy({ headers: req.headers }),
-                error = false,
-                resultPaths = [];
+                uploads = [];
             busboy.on('file', function(fieldname, file, filename, encoding, mimetype) {
-                if(error) return;
-                // if the user supplied a directory in the upload request, we will use that instead of the dirname
-                var destpath = path.join(ctx.url[ctx.url.length - 1] == '/' ? path.dirname(domain.filepath) : domain.filepath, filename);
-                debug('Uploading file from field "%s" to "%s"', fieldname, destpath);
-                
-                domain.filepath = destpath;
-                self.runEvent(self.events.BeforePut, ctx, domain, function(err) {
-                    if(err) {
-                        error = err;
-                        return;
-                    }
+                uploads.push(new when.promise(function(resolve, reject) {
+                    // if the user supplied a directory in the upload request, we will use that instead of the dirname
+                    var destpath = path.join(ctx.url[ctx.url.length - 1] == '/' ? path.dirname(domain.filepath) : domain.filepath, filename);
+                    debug('Uploading file from field "%s" to "%s"', fieldname, destpath);
+                    
+                    domain.filepath = destpath;
+                    self.runEvent(self.events.BeforePut, ctx, domain, function(err) {
+                        if(err) {
+                            file.resume();
+                            return reject(err);
+                        }
 
-                    file.pipe(self._getUploadStream(ctx, domain.filepath, function(err, res) {
-                        self.runEvent(self.events.AfterPut, ctx, domain, function(err) {
-                            if(err) {
-                                error = err;
-                                return;
-                            }
-                            resultPaths.push(path.join(self.path, domain.filepath));
-                        });
-                    }));
-                });
+                        file.pipe(self._getUploadStream(ctx, domain.filepath, function(err, res) {
+                            self.runEvent(self.events.AfterPut, ctx, domain, function(err) {
+                                if(err) {
+                                    return reject(err);
+                                }
+                                resolve({
+                                    path: path.join(self.path, domain.filepath),
+                                    field: fieldname
+                                });
+                            });
+                        }));
+                    });
+                }));
             });
             busboy.on('finish', function() {
-                debug('All uploads done, errors: %j', error);
-                if(!error) {
+                when.all(uploads).then(function(results) {
+                    debug('All uploads done, errors: %j', error);
                     ctx.done(null, {
                         success: true,
-                        filepaths: resultPaths
+                        filepaths: results.map(function(res) {
+                            return res.path;
+                        }),
+                        results: results
                     });
-                }
+                }, function(err) {
+                    console.error('An error happened:', err);
+                    ctx.done(err);
+                });
             });
             req.pipe(busboy);
 
