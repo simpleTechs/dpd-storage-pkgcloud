@@ -1,6 +1,6 @@
 ## storage-pkgcloud Resource
 
-This custom resource type allows you to provide multiple ways of storing files in the cloud through delpoyd.
+This custom resource type allows you to provide multiple ways of storing files in the cloud through deployd.
 Currently, the following backends are supported for storage:
 
 * **Amazon S3**
