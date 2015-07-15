@@ -64,9 +64,13 @@ module.exports.prototype.handle = function(ctx, next) {
         filepath = path.normalize(decodeURIComponent(ctx.url)),
         filepath = filepath[0] == '/' ? filepath.substr(1) : filepath,
         filepath = filepath[filepath.length] == '/' ? filepath.substr(0, -1) : filepath,
+        payload = null,
         domain = {
             filepath: filepath, 
-            query:ctx.query
+            query:ctx.query,
+            setPayload: function(_payload) {
+                payload = _payload;
+            }
         },
         isRoot = ctx.session.isRoot;
 
@@ -120,12 +124,13 @@ module.exports.prototype.handle = function(ctx, next) {
                     self.runEvent(self.events.AfterPut, ctx, domain, function(err) {
                         debug('All uploads done, error: %j', err);
                         if(err) return ctx.done(err);
-
-                        ctx.done(null, {
+                        var result = {
                             success: true,
                             filepath: path.join(self.path, domain.filepath),
                             uploadURL: res
-                        });
+                        };
+                        if(payload) result.payload = payload;
+                        ctx.done(null, result);
                     });
                 }, 'url');
             });
@@ -157,10 +162,12 @@ module.exports.prototype.handle = function(ctx, next) {
                                 if(err) {
                                     return reject(err);
                                 }
-                                resolve({
+                                var result = {
                                     path: path.join(self.path, domain.filepath),
                                     field: fieldname
-                                });
+                                };
+                                if(payload) result.payload = payload;
+                                resolve(result);
                             });
                         }));
                     });
@@ -203,11 +210,12 @@ module.exports.prototype.handle = function(ctx, next) {
                     self.runEvent(self.events.AfterPut, ctx, domain, function(err) {
                         debug('All uploads done, error: %j', err);
                         if(err) return ctx.done(err);
-
-                        ctx.done(null, {
+                        var result = {
                             success: true,
                             filepaths: [path.join(self.path, domain.filepath)]
-                        });
+                        };
+                        if(payload) result.payload = payload;
+                        ctx.done(null, result);
                     });
                 });
             });
