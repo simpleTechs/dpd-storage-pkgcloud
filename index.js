@@ -64,9 +64,13 @@ module.exports.prototype.handle = function(ctx, next) {
         filepath = path.normalize(decodeURIComponent(ctx.url)),
         filepath = filepath[0] == '/' ? filepath.substr(1) : filepath,
         filepath = filepath[filepath.length] == '/' ? filepath.substr(0, -1) : filepath,
+        payload = null,
         domain = {
             filepath: filepath, 
-            query:ctx.query
+            query:ctx.query,
+            setPayload: function(_payload) {
+                payload = _payload;
+            }
         },
         isRoot = ctx.session.isRoot;
 
@@ -107,7 +111,12 @@ module.exports.prototype.handle = function(ctx, next) {
         
         if(ctx.query.returnFormat && ctx.query.returnFormat.toLowerCase() == 'url') {
             this.runEvent(this.events.BeforePut, ctx, domain, function(err) {
-                if(err) return ctx.done(err);
+                if(err) {
+                    return ctx.done(err);
+                }
+                if(!domain.filepath) {
+                    return ctx.done('A path is required for this file.');
+                }
 
                 self._getURL(ctx, 'put', domain.filepath, function(err, res) {
                     if(err) ctx.done(err);
@@ -115,12 +124,13 @@ module.exports.prototype.handle = function(ctx, next) {
                     self.runEvent(self.events.AfterPut, ctx, domain, function(err) {
                         debug('All uploads done, error: %j', err);
                         if(err) return ctx.done(err);
-
-                        ctx.done(null, {
+                        var result = {
                             success: true,
                             filepath: path.join(self.path, domain.filepath),
                             uploadURL: res
-                        });
+                        };
+                        if(payload) result.payload = payload;
+                        ctx.done(null, result);
                     });
                 }, 'url');
             });
@@ -142,16 +152,22 @@ module.exports.prototype.handle = function(ctx, next) {
                             file.resume();
                             return reject(err);
                         }
+                        if(!domain.filepath) {
+                            file.resume();
+                            return reject('A path is required for this file.');
+                        }
 
                         file.pipe(self._getUploadStream(ctx, domain.filepath, function(err, res) {
                             self.runEvent(self.events.AfterPut, ctx, domain, function(err) {
                                 if(err) {
                                     return reject(err);
                                 }
-                                resolve({
+                                var result = {
                                     path: path.join(self.path, domain.filepath),
                                     field: fieldname
-                                });
+                                };
+                                if(payload) result.payload = payload;
+                                resolve(result);
                             });
                         }));
                     });
@@ -181,19 +197,25 @@ module.exports.prototype.handle = function(ctx, next) {
             //handle direct upload
             debug('got direct-post request, type: %s', requestType);
             this.runEvent(this.events.BeforePut, ctx, domain, function(err) {
-                if(err) return ctx.done(err);
+                if(err) {
+                    return ctx.done(err);
+                }
+                if(!domain.filepath) {
+                    return ctx.done('A path is required for this file.');
+                }
 
                 self.putStream(ctx, domain.filepath, ctx.req, function(err, res) {
-                    if(err) ctx.done(err);
+                    if(err) return ctx.done(err);
                 
                     self.runEvent(self.events.AfterPut, ctx, domain, function(err) {
                         debug('All uploads done, error: %j', err);
                         if(err) return ctx.done(err);
-
-                        ctx.done(null, {
+                        var result = {
                             success: true,
                             filepaths: [path.join(self.path, domain.filepath)]
-                        });
+                        };
+                        if(payload) result.payload = payload;
+                        ctx.done(null, result);
                     });
                 });
             });
@@ -235,6 +257,7 @@ module.exports.prototype._getURL = function (ctx, action, filepath, done, return
 };
 
 module.exports.prototype._getUploadStream = function (ctx, filepath, done) {
+    debug('Uploading to %s/%s', this.container.name, filepath);
     var uploadStream = this.client.upload({
         container: this.container.name,
         remote: filepath
