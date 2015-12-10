@@ -63,6 +63,7 @@ module.exports.prototype.handle = function(ctx, next) {
         // remove the first /
         filepath = path.normalize(decodeURIComponent(ctx.url)),
         filepath = filepath[0] == '/' ? filepath.substr(1) : filepath,
+        filepath = filepath[0] == '\\' ? filepath.substr(1) : filepath,
         filepath = filepath[filepath.length] == '/' ? filepath.substr(0, -1) : filepath,
         payload = null,
         domain = {
